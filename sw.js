@@ -1,5 +1,5 @@
 // Service Worker —— 离线缓存 + 离线 fallback + 推送 + 后台同步
-const CACHE = 'pwa-sample-v6';
+const CACHE = 'pwa-sample-v7';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   './',
@@ -10,6 +10,7 @@ const ASSETS = [
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/banner.png',
 ];
 
 // ---- install：预缓存。注意不再 skipWaiting，保留 waiting 状态供更新提示用 ----
@@ -64,20 +65,29 @@ self.addEventListener('push', (e) => {
   } catch (_) {
     if (e.data) data.body = e.data.text();
   }
-  e.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: 'icons/icon-192.png',
-      badge: 'icons/icon-192.png',
-      // payload 里的 url 决定点击跳哪个页面，缺省回主页
-      data: { url: data.url || './index.html' },
-    })
-  );
+
+  const opts = {
+    body: data.body,
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    // payload 里的 url 决定点击跳哪个页面，缺省回主页
+    data: { url: data.url || './index.html' },
+  };
+  if (data.image) opts.image = data.image; // 通知大图（Android 展开显示）
+  if (data.actions) opts.actions = data.actions; // 通知 action 按钮
+
+  const tasks = [self.registration.showNotification(data.title, opts)];
+  // payload 带 badgeCount → 给主屏图标设角标
+  if (typeof data.badgeCount === 'number' && self.navigator.setAppBadge) {
+    tasks.push(self.navigator.setAppBadge(data.badgeCount).catch(() => {}));
+  }
+  e.waitUntil(Promise.all(tasks));
 });
 
-// ---- notificationclick：点通知 → 跳转到 payload 指定的页面 ----
+// ---- notificationclick：点通知/action 按钮 → 清角标 + 跳转 ----
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  const dismiss = e.action === 'dismiss'; // 点了「忽略」按钮
   // 解析成绝对 URL，避免相对路径在不同上下文歧义
   const target = new URL(
     (e.notification.data && e.notification.data.url) || './index.html',
@@ -85,6 +95,12 @@ self.addEventListener('notificationclick', (e) => {
   ).href;
   e.waitUntil(
     (async () => {
+      // 用户已响应通知 → 清掉主屏图标角标
+      if (self.navigator.clearAppBadge) {
+        await self.navigator.clearAppBadge().catch(() => {});
+      }
+      if (dismiss) return; // 「忽略」：只清角标关通知，不跳转
+
       const cs = await self.clients.matchAll({
         type: 'window',
         includeUncontrolled: true,
