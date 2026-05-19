@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#4f46e5" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <!-- iOS：Safari 不读 manifest，靠这些 meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PWA Sample" />
+  <title>PWA Sample</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background: linear-gradient(160deg, #4f46e5, #7c3aed);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 24px;
+    }
+    h1 { font-size: 28px; }
+    .card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 20px 24px;
+      max-width: 420px;
+      width: 100%;
+    }
+    .row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
+    .dot { font-weight: 700; }
+    button {
+      font-size: 15px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+      color: #4f46e5;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    #log { font-size: 12px; opacity: 0.8; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>🛰️ PWA Sample</h1>
+
+  <div class="card">
+    <div class="row"><span>Service Worker</span><span class="dot" id="sw">检测中…</span></div>
+    <div class="row"><span>网络状态</span><span class="dot" id="net">—</span></div>
+    <div class="row"><span>显示模式</span><span class="dot" id="mode">—</span></div>
+  </div>
+
+  <button id="install" disabled>安装到桌面</button>
+
+  <div class="card" id="ios-hint" style="display:none">
+    <strong>📱 iOS 用户看这里</strong>
+    <p style="font-size:13px; margin-top:8px; line-height:1.6;">
+      iOS 无自动安装按钮，请手动：<br />
+      ① 点 Safari 底部 <b>分享</b> 按钮 <span style="font-size:16px">􀈂</span><br />
+      ② 选 <b>添加到主屏幕</b><br />
+      ③ 点 <b>添加</b> → 桌面出现 app 图标
+    </p>
+  </div>
+
+  <p id="log">断网后刷新页面 → 仍能打开（离线缓存生效）</p>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    // 1. 注册 Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => { $('sw').textContent = '✅ 已注册'; })
+        .catch((e) => { $('sw').textContent = '❌ ' + e.message; });
+    } else {
+      $('sw').textContent = '❌ 不支持';
+    }
+
+    // 2. 网络状态
+    const updateNet = () => {
+      $('net').textContent = navigator.onLine ? '🟢 在线' : '🔴 离线';
+    };
+    updateNet();
+    addEventListener('online', updateNet);
+    addEventListener('offline', updateNet);
+
+    // 3. 显示模式（standalone = 已作为 app 安装运行）
+    $('mode').textContent = matchMedia('(display-mode: standalone)').matches
+      ? '📱 standalone (已安装)'
+      : '🌐 browser tab';
+
+    // 4. iOS 检测：无 beforeinstallprompt，显示手动引导
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandalone = matchMedia('(display-mode: standalone)').matches
+      || navigator.standalone === true;
+    if (isIOS && !isStandalone) {
+      $('ios-hint').style.display = 'block';
+      $('install').style.display = 'none';
+    }
+
+    // 5. 安装提示（Android / 桌面 Chrome）
+    let deferredPrompt;
+    addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      $('install').disabled = false;
+    });
+    $('install').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      $('log').textContent = '安装结果: ' + outcome;
+      deferredPrompt = null;
+      $('install').disabled = true;
+    });
+  </script>
+</body>
+</html>
