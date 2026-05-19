@@ -1,5 +1,5 @@
-// Service Worker —— v2：离线缓存 + 离线 fallback + 推送 + 后台同步
-const CACHE = 'pwa-sample-v4';
+// Service Worker —— 离线缓存 + 离线 fallback + 推送 + 后台同步
+const CACHE = 'pwa-sample-v5';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   './',
@@ -12,8 +12,13 @@ const ASSETS = [
 ];
 
 // ---- install：预缓存。注意不再 skipWaiting，保留 waiting 状态供更新提示用 ----
+// cache:'reload' 强制绕过 HTTP 缓存，否则会把过期的旧资源存进新 cache
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then((c) =>
+      c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))
+    )
+  );
 });
 
 // ---- activate：清旧缓存 ----
