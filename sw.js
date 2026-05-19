@@ -1,5 +1,5 @@
 // Service Worker —— v2：离线缓存 + 离线 fallback + 推送 + 后台同步
-const CACHE = 'pwa-sample-v3';
+const CACHE = 'pwa-sample-v4';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   './',
