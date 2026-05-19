@@ -96,7 +96,7 @@
   <!-- 状态 -->
   <div class="card">
     <h3>运行状态</h3>
-    <div class="row"><span>构建版本</span><span class="dot" id="build">v7</span></div>
+    <div class="row"><span>构建版本</span><span class="dot" id="build">v8</span></div>
     <div class="row"><span>Service Worker</span><span class="dot" id="sw">检测中…</span></div>
     <div class="row"><span>网络状态</span><span class="dot" id="net">—</span></div>
     <div class="row"><span>显示模式</span><span class="dot" id="mode">—</span></div>
@@ -161,6 +161,43 @@
     <h3>⑤ Background Sync</h3>
     <p style="font-size:13px">注册同步任务 → 断网 → 重连后 SW 自动触发并弹通知。</p>
     <div class="btns"><button id="sync">注册后台同步</button></div>
+  </div>
+
+  <!-- 设备能力：定位 / 屏幕常亮 / 剪贴板 -->
+  <div class="card">
+    <h3>⑥ 设备能力</h3>
+    <div class="row"><span>定位</span><span class="dot" id="geo-out">—</span></div>
+    <div class="btns"><button id="geo-btn">获取定位</button></div>
+    <div class="row" style="margin-top:12px"><span>屏幕常亮</span><span class="dot" id="wake-out">关</span></div>
+    <div class="btns"><button id="wake-btn" class="ghost">开启 Wake Lock</button></div>
+    <div class="btns" style="margin-top:12px">
+      <input id="clip-input" placeholder="写入剪贴板的文本…" />
+      <button id="clip-write">写入</button>
+      <button id="clip-read" class="ghost">读取</button>
+    </div>
+    <div class="row"><span>剪贴板</span><span class="dot" id="clip-out">—</span></div>
+  </div>
+
+  <!-- 摄像头 -->
+  <div class="card">
+    <h3>⑦ 摄像头 getUserMedia</h3>
+    <video id="cam-video" autoplay playsinline muted
+      style="width:100%; border-radius:10px; background:#000; display:none; margin-bottom:8px;"></video>
+    <div class="row"><span>状态</span><span class="dot" id="cam-out">未开启</span></div>
+    <div class="btns">
+      <button id="cam-start">开摄像头</button>
+      <button id="cam-flip" class="ghost">前后切换</button>
+      <button id="cam-stop" class="ghost">关闭</button>
+    </div>
+  </div>
+
+  <!-- 运动传感器 -->
+  <div class="card">
+    <h3>⑧ 运动传感器</h3>
+    <div class="row"><span>授权</span><span class="dot" id="motion-perm">—</span></div>
+    <div class="row"><span>方向 α/β/γ</span><span class="dot" id="motion-ori">—</span></div>
+    <div class="row"><span>加速度 x/y/z</span><span class="dot" id="motion-acc">—</span></div>
+    <div class="btns"><button id="motion-btn">启用传感器（晃动手机看数值）</button></div>
   </div>
 
   <p id="log">断网后刷新页面 → 仍能打开（离线缓存生效）</p>

@@ -277,3 +277,149 @@ if (action === 'new-note') {
 } else if (action === 'notify') {
   $('push-test').click();
 }
+
+// ===================================================================
+// 11. 设备能力：定位
+// ===================================================================
+$('geo-btn').addEventListener('click', () => {
+  if (!navigator.geolocation) return ($('geo-out').textContent = '不支持');
+  $('geo-out').textContent = '定位中…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      $('geo-out').textContent =
+        `${latitude.toFixed(4)}, ${longitude.toFixed(4)} ±${Math.round(accuracy)}m`;
+    },
+    (err) => { $('geo-out').textContent = '失败: ' + err.message; },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+});
+
+// ===================================================================
+// 12. 设备能力：Wake Lock 屏幕常亮（切后台会自动释放，回前台需重新申请）
+// ===================================================================
+let wakeLock = null;
+let wantWake = false;
+
+async function acquireWake() {
+  wakeLock = await navigator.wakeLock.request('screen');
+  wakeLock.addEventListener('release', () => { wakeLock = null; });
+  $('wake-out').textContent = '🟢 屏幕常亮中';
+}
+
+$('wake-btn').addEventListener('click', async () => {
+  if (!('wakeLock' in navigator)) return ($('wake-out').textContent = '不支持');
+  try {
+    if (wantWake) {
+      wantWake = false;
+      if (wakeLock) await wakeLock.release();
+      wakeLock = null;
+      $('wake-out').textContent = '关';
+      $('wake-btn').textContent = '开启 Wake Lock';
+    } else {
+      wantWake = true;
+      await acquireWake();
+      $('wake-btn').textContent = '关闭 Wake Lock';
+    }
+  } catch (e) {
+    $('wake-out').textContent = '失败: ' + e.message;
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (wantWake && wakeLock === null && document.visibilityState === 'visible') {
+    acquireWake().catch(() => {});
+  }
+});
+
+// ===================================================================
+// 13. 设备能力：剪贴板读写
+// ===================================================================
+$('clip-write').addEventListener('click', async () => {
+  const v = $('clip-input').value.trim() || 'Hello from PWA Sample';
+  try {
+    await navigator.clipboard.writeText(v);
+    $('clip-out').textContent = '已写入: ' + v;
+  } catch (e) {
+    $('clip-out').textContent = '写入失败: ' + e.message;
+  }
+});
+$('clip-read').addEventListener('click', async () => {
+  try {
+    const t = await navigator.clipboard.readText();
+    $('clip-out').textContent = '读到: ' + (t || '(空)');
+  } catch (e) {
+    $('clip-out').textContent = '读取失败: ' + e.message;
+  }
+});
+
+// ===================================================================
+// 14. 设备能力：摄像头 getUserMedia
+// ===================================================================
+let camStream = null;
+let camFacing = 'environment'; // environment=后置, user=前置
+
+async function startCam() {
+  if (camStream) camStream.getTracks().forEach((t) => t.stop());
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: camFacing },
+      audio: false,
+    });
+    const v = $('cam-video');
+    v.srcObject = camStream;
+    v.style.display = 'block';
+    $('cam-out').textContent = '🟢 ' + (camFacing === 'environment' ? '后置' : '前置');
+  } catch (e) {
+    $('cam-out').textContent = '失败: ' + e.message;
+  }
+}
+
+$('cam-start').addEventListener('click', startCam);
+$('cam-flip').addEventListener('click', () => {
+  camFacing = camFacing === 'environment' ? 'user' : 'environment';
+  if (camStream) startCam();
+});
+$('cam-stop').addEventListener('click', () => {
+  if (camStream) camStream.getTracks().forEach((t) => t.stop());
+  camStream = null;
+  $('cam-video').style.display = 'none';
+  $('cam-out').textContent = '已关闭';
+});
+
+// ===================================================================
+// 15. 设备能力：运动传感器（iOS 13+ 需显式 requestPermission）
+// ===================================================================
+function startMotion() {
+  $('motion-perm').textContent = '✅ 已授权';
+  addEventListener('deviceorientation', (e) => {
+    const f = (n) => (n == null ? '–' : n.toFixed(0));
+    $('motion-ori').textContent = `${f(e.alpha)} / ${f(e.beta)} / ${f(e.gamma)}`;
+  });
+  addEventListener('devicemotion', (e) => {
+    const a = e.accelerationIncludingGravity || {};
+    const f = (n) => (n == null ? '–' : n.toFixed(1));
+    $('motion-acc').textContent = `${f(a.x)} / ${f(a.y)} / ${f(a.z)}`;
+  });
+}
+
+$('motion-btn').addEventListener('click', async () => {
+  // iOS 独有：DeviceOrientationEvent / DeviceMotionEvent 带 requestPermission
+  const reqs = [];
+  for (const Ev of [window.DeviceOrientationEvent, window.DeviceMotionEvent]) {
+    if (Ev && typeof Ev.requestPermission === 'function') reqs.push(Ev.requestPermission());
+  }
+  try {
+    if (reqs.length) {
+      const states = await Promise.all(reqs);
+      if (states.every((s) => s === 'granted')) startMotion();
+      else $('motion-perm').textContent = '❌ 权限被拒绝';
+    } else if (window.DeviceOrientationEvent || window.DeviceMotionEvent) {
+      startMotion(); // 非 iOS：无需显式授权，直接监听
+    } else {
+      $('motion-perm').textContent = '不支持';
+    }
+  } catch (e) {
+    $('motion-perm').textContent = '失败: ' + e.message;
+  }
+});
