@@ -1,9 +1,10 @@
 // Service Worker —— 离线缓存 + 离线 fallback + 推送 + 后台同步
-const CACHE = 'pwa-sample-v5';
+const CACHE = 'pwa-sample-v6';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   './',
   './index.html',
+  './push-landing.html',
   './offline.html',
   './app.js',
   './manifest.json',
@@ -68,22 +69,37 @@ self.addEventListener('push', (e) => {
       body: data.body,
       icon: 'icons/icon-192.png',
       badge: 'icons/icon-192.png',
-      data: { url: './index.html' },
+      // payload 里的 url 决定点击跳哪个页面，缺省回主页
+      data: { url: data.url || './index.html' },
     })
   );
 });
 
-// ---- notificationclick：点通知 → 聚焦已开窗口或开新窗 ----
+// ---- notificationclick：点通知 → 跳转到 payload 指定的页面 ----
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || './index.html';
+  // 解析成绝对 URL，避免相对路径在不同上下文歧义
+  const target = new URL(
+    (e.notification.data && e.notification.data.url) || './index.html',
+    self.location.href
+  ).href;
   e.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
+    (async () => {
+      const cs = await self.clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true,
+      });
+      // 已有窗口：导航到目标页再聚焦
       for (const c of cs) {
-        if ('focus' in c) return c.focus();
+        if ('navigate' in c) {
+          const navigated = await c.navigate(target).catch(() => c);
+          return (navigated || c).focus();
+        }
+        return c.focus();
       }
-      return self.clients.openWindow(url);
-    })
+      // 无窗口：直接开目标页
+      return self.clients.openWindow(target);
+    })()
   );
 });
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>推送落地页 · PWA Sample</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background: linear-gradient(160deg, #0f766e, #0e7490);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 28px;
+      text-align: center;
+    }
+    h1 { font-size: 52px; }
+    h2 { font-size: 22px; }
+    .card {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 16px;
+      padding: 16px 20px;
+      max-width: 420px;
+      width: 100%;
+      text-align: left;
+    }
+    .row { display: flex; justify-content: space-between; gap: 12px; margin: 7px 0; font-size: 14px; }
+    .row span:last-child { font-weight: 700; word-break: break-all; }
+    a {
+      margin-top: 6px;
+      font-size: 15px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      background: #fff;
+      color: #0f766e;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .hint { font-size: 13px; opacity: 0.8; max-width: 360px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <h1>📨</h1>
+  <h2>推送落地页</h2>
+  <p class="hint">这是一个独立页面（不同 URL、不同配色）。你能看到它，说明点推送通知后成功跳转到了指定页面。</p>
+
+  <div class="card">
+    <div class="row"><span>当前路径</span><span id="path">—</span></div>
+    <div class="row"><span>消息 id</span><span id="p-id">—</span></div>
+    <div class="row"><span>来源</span><span id="p-from">—</span></div>
+    <div class="row"><span>携带文本</span><span id="p-msg">—</span></div>
+    <div class="row"><span>跳转时刻</span><span id="ts">—</span></div>
+  </div>
+
+  <a href="./index.html">← 回主页面</a>
+
+  <script>
+    const q = new URLSearchParams(location.search);
+    const set = (id, v) => (document.getElementById(id).textContent = v);
+    set('path', location.pathname + location.search);
+    set('p-id', q.get('id') || '(无)');
+    set('p-from', q.get('from') || '(无)');
+    set('p-msg', q.get('msg') || '(无)');
+    set('ts', new Date().toLocaleTimeString('zh-CN'));
+  </script>
+</body>
+</html>
