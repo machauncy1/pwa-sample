@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>离线 · PWA Sample</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background: #1e1b4b;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+    h1 { font-size: 56px; }
+    p { opacity: 0.8; max-width: 320px; line-height: 1.6; }
+    button {
+      margin-top: 8px;
+      font-size: 15px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+      color: #4f46e5;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>📡</h1>
+  <h2>你处于离线状态</h2>
+  <p>这个页面没被缓存，也连不上网络。这是 Service Worker 提供的自定义离线 fallback，而不是浏览器的报错页。</p>
+  <button onclick="location.reload()">重新加载</button>
+</body>
+</html>

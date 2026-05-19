@@ -1,7 +1,8 @@
 {
+  "id": "/pwa-sample/",
   "name": "PWA Sample App",
   "short_name": "PWA Sample",
-  "description": "最小可安装的 Progressive Web App 示例",
+  "description": "演示核心 PWA 能力的可安装 Web App：离线、更新、推送、系统集成、本地存储",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -20,6 +21,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "记一条笔记",
+      "short_name": "新笔记",
+      "description": "直接跳到本地笔记输入",
+      "url": "./index.html?action=new-note",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "发测试通知",
+      "short_name": "测试通知",
+      "description": "触发一条本地通知",
+      "url": "./index.html?action=notify",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
