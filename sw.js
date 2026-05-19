@@ -1,5 +1,5 @@
 // Service Worker —— 离线缓存 + 离线 fallback + 推送 + 后台同步
-const CACHE = 'pwa-sample-v9';
+const CACHE = 'pwa-sample-v10';
 const OFFLINE_URL = 'offline.html';
 const ASSETS = [
   './',
@@ -73,8 +73,11 @@ self.addEventListener('push', (e) => {
     // payload 里的 url 决定点击跳哪个页面，缺省回主页
     data: { url: data.url || './index.html' },
   };
-  if (data.image) opts.image = data.image; // 通知大图（Android 展开显示）
-  if (data.actions) opts.actions = data.actions; // 通知 action 按钮
+  // payload 里出现的通知选项全部透传给 showNotification
+  for (const k of ['image', 'actions', 'tag', 'renotify', 'requireInteraction',
+                   'silent', 'vibrate', 'timestamp', 'dir', 'lang']) {
+    if (data[k] !== undefined) opts[k] = data[k];
+  }
 
   const tasks = [self.registration.showNotification(data.title, opts)];
   // payload 带 badgeCount → 给主屏图标设角标
