@@ -96,7 +96,7 @@
   <!-- 状态 -->
   <div class="card">
     <h3>运行状态</h3>
-    <div class="row"><span>构建版本</span><span class="dot" id="build">v8</span></div>
+    <div class="row"><span>构建版本</span><span class="dot" id="build">v9</span></div>
     <div class="row"><span>Service Worker</span><span class="dot" id="sw">检测中…</span></div>
     <div class="row"><span>网络状态</span><span class="dot" id="net">—</span></div>
     <div class="row"><span>显示模式</span><span class="dot" id="mode">—</span></div>
@@ -126,6 +126,7 @@
     <div class="btns">
       <button id="push-enable">启用通知 + 订阅</button>
       <button id="push-test" class="ghost">发本地测试通知</button>
+      <button id="push-copy" class="ghost" disabled>📋 复制 subscription</button>
     </div>
     <pre id="push-sub">订阅后这里显示 subscription（真实推送时发给服务端）</pre>
   </div>

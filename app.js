@@ -118,12 +118,35 @@ $('push-enable').addEventListener('click', async () => {
         applicationServerKey: b64ToUint8(VAPID_PUBLIC),
       });
     }
-    $('push-sub').textContent = JSON.stringify(sub.toJSON(), null, 2);
+    showSubscription(sub);
     log('已订阅推送。真实推送需服务端用 VAPID 私钥向 endpoint 发消息');
   } catch (e) {
     log('订阅失败: ' + e.message);
   }
 });
+
+// 显示 subscription 并启用一键复制按钮
+function showSubscription(sub) {
+  $('push-sub').textContent = JSON.stringify(sub.toJSON(), null, 2);
+  $('push-copy').disabled = false;
+}
+
+$('push-copy').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText($('push-sub').textContent);
+    log('subscription 已复制到剪贴板，粘贴发给推送方即可');
+  } catch (e) {
+    log('复制失败: ' + e.message);
+  }
+});
+
+// 页面加载时若已存在订阅，直接回显并启用复制（免得再点订阅）
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready
+    .then((reg) => reg.pushManager.getSubscription())
+    .then((sub) => { if (sub) showSubscription(sub); })
+    .catch(() => {});
+}
 
 // 本地通知：不经推送服务，直接由 SW 弹，验证通知 UI + notificationclick
 $('push-test').addEventListener('click', async () => {
